@@ -1,18 +1,9 @@
 from typing import Callable
 
-from pytorch_lightning import Callback
-from verification.base import ModelVerificationBase
+from verification.base import VerificationBase, VerificationCallbackBase
 
 
-class BatchMixingVerification(ModelVerificationBase):
-
-    def warning_message(self, *args, **kwargs):
-        message = (
-            "Your model is mixing data across the batch dimension."
-            " This can lead to wrong gradient updates in the optimizer."
-            " Check the operations that reshape and permute tensor dimensions in your model."
-        )
-        return message
+class BatchMixingVerification(VerificationBase):
 
     def check(self, input_array=None, input_mapping: Callable = None, output_mapping: Callable = None, sample_idx=0):
         input_mapping = input_mapping or (lambda x: x)
@@ -23,7 +14,7 @@ class BatchMixingVerification(ModelVerificationBase):
 
         input_batch.requires_grad = True
         self.model.zero_grad()
-        output = self.model(input_array)
+        output = self._model_forward(input_array)
 
         # backward on the i-th sample should lead to gradient only in i-th input slice
         output_mapping(output)[sample_idx].sum().backward()
@@ -36,9 +27,18 @@ class BatchMixingVerification(ModelVerificationBase):
         return has_grad_in_sample and not has_grad_outside_sample
 
 
-class BatchMixingVerificationCallback(Callback):
+class BatchMixingVerificationCallback(VerificationCallbackBase):
 
-    def __init__(self, input_mapping: Callable = None, output_mapping: Callable = None, sample_idx=0):
+    def message(self):
+        message = (
+            "Your model is mixing data across the batch dimension."
+            " This can lead to wrong gradient updates in the optimizer."
+            " Check the operations that reshape and permute tensor dimensions in your model."
+        )
+        return message
+
+    def __init__(self, input_mapping: Callable = None, output_mapping: Callable = None, sample_idx=0, **kwargs):
+        super().__init__(**kwargs)
         self._input_mapping = input_mapping
         self._output_mapping = output_mapping
         self._sample_idx = sample_idx
@@ -51,7 +51,5 @@ class BatchMixingVerificationCallback(Callback):
             output_mapping=self._output_mapping,
             sample_idx=self._sample_idx,
         )
-        # if not result:
-        #     rank_zero_warn(
-        #
-        #     )
+        if not result:
+            self._raise()
