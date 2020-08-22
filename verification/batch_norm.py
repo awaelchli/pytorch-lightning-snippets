@@ -39,17 +39,16 @@ class BatchNormVerification(VerificationBase):
             input_array = self._get_input_array_copy(input_array)
             self.model(input_array)
 
-        detected = False
         for prev, current in zip(self._module_list[:-1], self._module_list[1:]):
             bias = getattr(prev, "bias", None)
             detected = (isinstance(current, self.normalization_layer)
-                        and current.training  # TODO: do we want this check?
+                        # and current.training  # TODO: do we want/need this check?
                         and isinstance(bias, torch.Tensor)
                         and bias.requires_grad)
             if detected:
                 self._detected_pairs.append((prev, current))
 
-        return not detected
+        return not self._detected_pairs
 
 
 class BatchNormVerificationCallback(VerificationCallbackBase):
@@ -57,7 +56,7 @@ class BatchNormVerificationCallback(VerificationCallbackBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def message(self, *args, **kwargs):
+    def message(self):
         message = (
             "Detected a layer with bias followed by a normalization layer."
             " This makes the normalization ineffective and can lead to unstable training. "
