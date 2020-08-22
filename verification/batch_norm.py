@@ -59,7 +59,7 @@ class BatchNormVerification(VerificationBase):
 
     def _register_hooks(self):
         hook_handles = []
-        for name, module in self.model.named_modules():
+        for name, module in self.model.named_children():
             handle = module.register_forward_hook(self._create_hook(name))
             hook_handles.append(handle)
         return hook_handles
