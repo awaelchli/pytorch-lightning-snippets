@@ -1,5 +1,6 @@
 from typing import Callable
 
+from pytorch_lightning.utilities.exceptions import MisconfigurationException
 from verification.base import VerificationBase, VerificationCallbackBase
 
 
@@ -10,8 +11,10 @@ class BatchMixingVerification(VerificationBase):
         output_mapping = output_mapping or (lambda x: x)
         input_array = self._get_input_array_copy(input_array)
         input_batch = input_mapping(input_array)
-        assert input_batch.size(0) > 1, "batch_size must be greater than 1 for this test"
-
+        if input_batch.size(0) < 2:
+            raise MisconfigurationException(
+                "Batch size must be greater than 1 to run verification."
+            )
         input_batch.requires_grad = True
         self.model.zero_grad()
         output = self._model_forward(input_array)
