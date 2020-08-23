@@ -27,18 +27,19 @@ def test_conv_bias_batch_norm_model(use_bias):
     model = ConvBiasBatchNormModel(use_bias=use_bias)
     verification = BatchNormVerification(model)
     expected = not use_bias
-    result = verification.check()
+    result = verification.check(input_array=model.example_input_array)
     assert result == expected
 
 
 def test_conv_bias_batch_norm_callback():
     trainer = Trainer()
     model = ConvBiasBatchNormModel(use_bias=True)
+    expected = "'conv' with bias followed by a normalization layer 'bn'"
 
     callback = BatchNormVerificationCallback()
-    with pytest.warns(UserWarning):
+    with pytest.warns(UserWarning, match=expected):
         callback.on_train_start(trainer, model)
 
     callback = BatchNormVerificationCallback(error=True)
-    with pytest.raises(RuntimeError):
+    with pytest.raises(RuntimeError, match=expected):
         callback.on_train_start(trainer, model)

@@ -4,7 +4,7 @@ from copy import deepcopy
 import torch.nn as nn
 from typing import Any
 
-from pytorch_lightning import Callback
+from pytorch_lightning import Callback, LightningModule
 from pytorch_lightning.utilities import rank_zero_warn
 
 
@@ -19,7 +19,8 @@ class VerificationBase:
         pass
 
     def _get_input_array_copy(self, input_array=None) -> Any:
-        input_array = input_array if input_array is not None else getattr(self.model, 'example_input_array', None)
+        if input_array is None and isinstance(self.model, LightningModule):
+            input_array = self.model.example_input_array
         return deepcopy(input_array)
 
     def _model_forward(self, input_array: Any) -> Any:
