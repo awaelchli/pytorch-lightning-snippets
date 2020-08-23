@@ -7,7 +7,7 @@ from pytorch_lightning.utilities.exceptions import MisconfigurationException
 from verification.base import VerificationBase, VerificationCallbackBase
 
 
-class BatchMixingVerification(VerificationBase):
+class BatchGradientVerification(VerificationBase):
 
     def check(self, input_array=None, input_mapping: Callable = None, output_mapping: Callable = None, sample_idx=0) -> bool:
         input_mapping = input_mapping or default_input_mapping
@@ -29,11 +29,10 @@ class BatchMixingVerification(VerificationBase):
         zero_grad_inds.pop(sample_idx)
 
         has_grad_outside_sample = input_batch.grad[zero_grad_inds].abs().sum().item() > 0
-        # has_grad_in_sample = input_batch.grad[sample_idx].abs().sum().item() > 0
-        return not has_grad_outside_sample  # and has_grad_in_sample
+        return not has_grad_outside_sample
 
 
-class BatchMixingVerificationCallback(VerificationCallbackBase):
+class BatchGradientVerificationCallback(VerificationCallbackBase):
 
     def message(self):
         message = (
@@ -50,7 +49,7 @@ class BatchMixingVerificationCallback(VerificationCallbackBase):
         self._sample_idx = sample_idx
 
     def on_train_start(self, trainer, pl_module):
-        verification = BatchMixingVerification(pl_module)
+        verification = BatchGradientVerification(pl_module)
         result = verification.check(
             input_array=pl_module.example_input_array,
             input_mapping=self._input_mapping,

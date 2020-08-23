@@ -3,9 +3,9 @@ import torch
 from torch import nn as nn
 
 from pytorch_lightning import Trainer, LightningModule
-from verification.batch_gradient_mixing import (
-    BatchMixingVerification,
-    BatchMixingVerificationCallback,
+from verification.batch_gradient import (
+    BatchGradientVerification,
+    BatchGradientVerificationCallback,
     default_input_mapping,
     default_output_mapping,
 )
@@ -90,25 +90,25 @@ class LitModel(LightningModule):
     DictInputDictOutputModel,
 ])
 @pytest.mark.parametrize("mix_data", [True, False])
-def test_mixing_verification(model_class, mix_data):
+def test_batch_gradient_verification(model_class, mix_data):
     model = model_class(mix_data)
     is_valid = not mix_data
-    verification = BatchMixingVerification(model)
+    verification = BatchGradientVerification(model)
     result = verification.check(input_array=model.input_array)
     assert result == is_valid
 
 
-def test_mixing_verification_callback():
+def test_batch_gradient_verification_callback():
     trainer = Trainer()
     model = LitModel(mix_data=True)
 
     expected = "Your model is mixing data across the batch dimension."
 
-    callback = BatchMixingVerificationCallback()
+    callback = BatchGradientVerificationCallback()
     with pytest.warns(UserWarning, match=expected):
         callback.on_train_start(trainer, model)
 
-    callback = BatchMixingVerificationCallback(error=True)
+    callback = BatchGradientVerificationCallback(error=True)
     with pytest.raises(RuntimeError, match=expected):
         callback.on_train_start(trainer, model)
 
