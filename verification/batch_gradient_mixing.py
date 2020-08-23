@@ -88,6 +88,16 @@ def default_output_mapping(data: Any) -> torch.Tensor:
         A float tensor with shape (B, N) where B is the batch size and N is the sum of (flattened)
         dimensions of all tensors in the collection. If the input was already a tensor, the tensor
         itself is returned.
+
+    Example:
+        >>> data = (torch.rand(3, 5), "foo", torch.rand(3, 2, 4))
+        >>> result = default_output_mapping(data)
+        >>> result.shape
+        torch.Size([3, 13])
+        >>> data = {"one": torch.rand(3, 5), "two": torch.rand(3, 2, 1)}
+        >>> result = default_output_mapping(data)
+        >>> result.shape
+        torch.Size([3, 7])
     """
     if isinstance(data, torch.Tensor):
         return data
