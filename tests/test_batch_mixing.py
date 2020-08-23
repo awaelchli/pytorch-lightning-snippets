@@ -2,40 +2,95 @@ import pytest
 import torch
 from torch import nn as nn
 
-from verification.batch_gradient_mixing import BatchMixingVerification, default_output_mapping, default_input_mapping
+from pytorch_lightning import Trainer
+from verification.batch_gradient_mixing import BatchMixingVerification, default_output_mapping, default_input_mapping, \
+    BatchMixingVerificationCallback
 
 
-class MixingModel(nn.Module):
+class TemplateModel(nn.Module):
 
-    def __init__(self):
+    def __init__(self, mix_data=False):
         super().__init__()
+        self.mix_data = mix_data
         self.linear = nn.Linear(10, 5)
+        self.input_array = torch.rand(10, 5, 2)
 
-    def forward(self, x):
+    def forward(self, *args, **kwargs):
+        return self.forward__standard(*args, **kwargs)
+
+    def forward__standard(self, x):
         # x: (B, 5, 2)
-        x = x.view(10, -1).permute(1, 0).view(-1, 10)  # oops!
+        if self.mix_data:
+            x = x.view(10, -1).permute(1, 0).view(-1, 10)  # oops!
+        else:
+            x = x.view(-1, 10)  # good!
         return self.linear(x)
 
 
-class NonMixingModel(nn.Module):
+class MultipleInputModel(TemplateModel):
 
-    def __init__(self):
-        super().__init__()
-        self.linear = nn.Linear(10, 5)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.input_array = (torch.rand(10, 5, 2), torch.rand(10, 5, 2))
+
+    def forward(self, x, y, some_kwarg=True):
+        out = super().forward(x) + super().forward(y)
+        return out
+
+
+class MultipleOutputModel(TemplateModel):
 
     def forward(self, x):
-        # x: (B, 5, 2)
-        x = x.view(-1, 10)  # good!
-        return self.linear(x)
+        out = super().forward(x)
+        return None, out, out, False
 
 
-@pytest.mark.parametrize(["model", "is_valid"], [
-    pytest.param(MixingModel(), False),
-    pytest.param(NonMixingModel(), True)
+class DictInputDictOutputModel(TemplateModel):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.input_array = {
+            "w": 42,
+            "x": {"a": torch.rand(3, 5, 2)},
+            "y": torch.rand(3, 1, 5, 2),
+            "z": torch.tensor(2)
+        }
+
+    def forward(self, y, x, z, w):
+        out1 = super().forward(x["a"])
+        out2 = super().forward(y)
+        out3 = out1 + out2
+        out = {
+            1: out1,
+            2: out2,
+            3: [out1, out3]
+        }
+        return out
+
+
+@pytest.mark.parametrize("model_class", [
+    TemplateModel,
+    MultipleInputModel,
+    MultipleOutputModel,
+    DictInputDictOutputModel,
 ])
-def test_mixing_model(model, is_valid):
+@pytest.mark.parametrize("mix_data", [True, False])
+def test_mixing_verification(model_class, mix_data):
+    model = model_class(mix_data)
+    is_valid = not mix_data
     verification = BatchMixingVerification(model)
-    result = verification.check(input_array=torch.rand(10, 5, 2))
+    result = verification.check(input_array=model.input_array)
+    assert result == is_valid
+
+
+@pytest.mark.parametrize("mix_data", [True, False])
+def test_mixing_verification_callback(mix_data):
+    trainer = Trainer()
+    model = DictInputDictOutputModel(mix_data)
+
+    is_valid = not mix_data
+    verification = BatchMixingVerificationCallback()
+    result = verification.check(input_array=model.input_array)
     assert result == is_valid
 
 
