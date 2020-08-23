@@ -2,9 +2,13 @@ import pytest
 import torch
 from torch import nn as nn
 
-from pytorch_lightning import Trainer
-from verification.batch_gradient_mixing import BatchMixingVerification, default_output_mapping, default_input_mapping, \
-    BatchMixingVerificationCallback
+from pytorch_lightning import Trainer, LightningModule
+from verification.batch_gradient_mixing import (
+    BatchMixingVerification,
+    BatchMixingVerificationCallback,
+    default_input_mapping,
+    default_output_mapping,
+)
 
 
 class TemplateModel(nn.Module):
@@ -68,6 +72,17 @@ class DictInputDictOutputModel(TemplateModel):
         return out
 
 
+class LitModel(LightningModule):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        self.model = DictInputDictOutputModel(*args, **kwargs)
+        self.example_input_array = self.model.input_array
+
+    def forward(self, *args, **kwargs):
+        return self.model(*args, **kwargs)
+
+
 @pytest.mark.parametrize("model_class", [
     TemplateModel,
     MultipleInputModel,
@@ -83,15 +98,19 @@ def test_mixing_verification(model_class, mix_data):
     assert result == is_valid
 
 
-@pytest.mark.parametrize("mix_data", [True, False])
-def test_mixing_verification_callback(mix_data):
+def test_mixing_verification_callback():
     trainer = Trainer()
-    model = DictInputDictOutputModel(mix_data)
+    model = LitModel(mix_data=True)
 
-    is_valid = not mix_data
-    verification = BatchMixingVerificationCallback()
-    result = verification.check(input_array=model.input_array)
-    assert result == is_valid
+    expected = "Your model is mixing data across the batch dimension."
+
+    callback = BatchMixingVerificationCallback()
+    with pytest.warns(UserWarning, match=expected):
+        callback.on_train_start(trainer, model)
+
+    callback = BatchMixingVerificationCallback(error=True)
+    with pytest.raises(RuntimeError, match=expected):
+        callback.on_train_start(trainer, model)
 
 
 def test_default_input_mapping():
