@@ -2,6 +2,7 @@ from abc import abstractmethod
 from copy import deepcopy
 
 import torch.nn as nn
+from typing import Any
 
 from pytorch_lightning import Callback
 from pytorch_lightning.utilities import rank_zero_warn
@@ -17,11 +18,11 @@ class VerificationBase:
     def check(self, *args, **kwargs) -> bool:
         pass
 
-    def _get_input_array_copy(self, input_array=None):
+    def _get_input_array_copy(self, input_array=None) -> Any:
         input_array = input_array if input_array is not None else getattr(self.model, 'example_input_array', None)
         return deepcopy(input_array)
 
-    def _model_forward(self, input_array):
+    def _model_forward(self, input_array: Any) -> Any:
         if isinstance(input_array, tuple):
             return self.model(*input_array)
         if isinstance(input_array, dict):
@@ -36,13 +37,13 @@ class VerificationCallbackBase(Callback):
         self._raise_error = error
 
     @abstractmethod
-    def message(self, *args, **kwargs):
+    def message(self, *args, **kwargs) -> str:
         pass
 
-    def warning_message(self, *args, **kwargs):
+    def warning_message(self, *args, **kwargs) -> str:
         return self.message(*args, **kwargs)
 
-    def error_message(self, *args, **kwargs):
+    def error_message(self, *args, **kwargs) -> str:
         return self.message(*args, **kwargs)
 
     def _raise(self, *args, **kwargs):

@@ -1,6 +1,6 @@
 import torch
 from torch import nn as nn
-from typing import Tuple, List
+from typing import Tuple, List, Callable
 
 from verification.base import VerificationBase, VerificationCallbackBase
 
@@ -28,7 +28,7 @@ class BatchNormVerification(VerificationBase):
     def detected_pairs(self) -> List[Tuple]:
         return self._detected_pairs
 
-    def check(self, input_array=None):
+    def check(self, input_array=None) -> bool:
         input_array = self._get_input_array_copy(input_array)
         hook_handles = self._register_hooks()
 
@@ -52,12 +52,12 @@ class BatchNormVerification(VerificationBase):
 
         return not self._detected_pairs
 
-    def _create_hook(self, module_name):
+    def _create_hook(self, module_name) -> Callable:
         def hook(module, inp_, out_):
             self._module_sequence.append((module_name, module))
         return hook
 
-    def _register_hooks(self):
+    def _register_hooks(self) -> list:
         hook_handles = []
         for name, module in self.model.named_children():
             handle = module.register_forward_hook(self._create_hook(name))
@@ -70,7 +70,7 @@ class BatchNormVerificationCallback(VerificationCallbackBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def message(self, detections: List[Tuple]):
+    def message(self, detections: List[Tuple]) -> str:
         first_detection = detections[0]
         message = (
             f"Detected a layer '{first_detection[0]}' with bias followed by"
