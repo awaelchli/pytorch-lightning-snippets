@@ -84,14 +84,28 @@ class VerificationCallbackBase(Callback):
         self._raise_warning = warn
         self._raise_error = error
 
-    @abstractmethod
     def message(self, *args, **kwargs) -> str:
+        """
+        The message to be printed when the model does not pass the verification.
+        If the message for warning and error differ, override the
+        :meth:`VerificationCallbackBase.warning_message` and :meth:`VerificationCallbackBase.error_message`
+        methods directly.
+
+        Arguments:
+            *args: Any positional arguments that are needed to construct the message.
+            **kwargs: Any keyword arguments that are needed to construct the message.
+
+        Returns:
+            The message as a string.
+        """
         pass
 
     def warning_message(self, *args, **kwargs) -> str:
+        """ The warning message printed when the model does not pass the verification. """
         return self.message(*args, **kwargs)
 
     def error_message(self, *args, **kwargs) -> str:
+        """ The error message printed when the model does not pass the verification. """
         return self.message(*args, **kwargs)
 
     def _raise(self, *args, **kwargs):
