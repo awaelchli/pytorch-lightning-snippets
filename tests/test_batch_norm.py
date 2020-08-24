@@ -48,24 +48,28 @@ class LitModel(LightningModule):
     pytest.param(True),
     pytest.param(False)
 ])
-def test_conv_bias_batch_norm_model(use_bias):
-    model = ConvBiasBatchNormModel(use_bias=use_bias)
+@pytest.mark.parametrize("device", [torch.device("cpu"), torch.device("cuda", 0)])
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="Test requires GPU")
+def test_conv_bias_batch_norm_model(use_bias, device):
+    model = ConvBiasBatchNormModel(use_bias=use_bias).to(device)
     verification = BatchNormVerification(model)
     expected = not use_bias
     result = verification.check(input_array=model.input_array)
     assert result == expected
 
 
-def test_conv_bias_batch_norm_callback():
+@pytest.mark.parametrize("gpus", [0, 1])
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="Test requires GPU")
+def test_conv_bias_batch_norm_callback(gpus):
     model = LitModel(use_bias=True)
     expected = "'model.conv' with bias followed by a normalization layer 'model.bn'"
 
     callback = BatchNormVerificationCallback()
-    trainer = Trainer(callbacks=[callback], max_steps=1)
+    trainer = Trainer(gpus=gpus, callbacks=[callback], max_steps=1)
     with pytest.warns(UserWarning, match=expected):
         trainer.fit(model)
 
     callback = BatchNormVerificationCallback(error=True)
-    trainer = Trainer(callbacks=[callback], max_steps=1)
+    trainer = Trainer(gpus=gpus, callbacks=[callback], max_steps=1)
     with pytest.raises(RuntimeError, match=expected):
         trainer.fit(model)
