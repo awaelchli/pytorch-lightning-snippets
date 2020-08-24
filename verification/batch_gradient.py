@@ -7,7 +7,6 @@ from pytorch_lightning.utilities.exceptions import MisconfigurationException
 from verification.base import VerificationBase, VerificationCallbackBase
 
 
-# TODO: enable grad check on multiple input tensors
 class BatchGradientVerification(VerificationBase):
     """
     Checks if a model mixes data across the batch dimension.
@@ -43,23 +42,29 @@ class BatchGradientVerification(VerificationBase):
         input_mapping = input_mapping or default_input_mapping
         output_mapping = output_mapping or default_output_mapping
         input_array = self._get_input_array_copy(input_array)
-        input_batch = input_mapping(input_array)
-        if input_batch.size(0) < 2:
+        input_batches = input_mapping(input_array)
+
+        if input_batches[0].size(0) < 2:
             raise MisconfigurationException(
                 "Batch size must be greater than 1 to run verification."
             )
-        input_batch.requires_grad = True
+
+        for input_batch in input_batches:
+            input_batch.requires_grad = True
+
         self.model.zero_grad()
         output = self._model_forward(input_array)
 
         # backward on the i-th sample should lead to gradient only in i-th input slice
         output_mapping(output)[sample_idx].sum().backward()
 
-        zero_grad_inds = list(range(len(input_batch)))
+        zero_grad_inds = list(range(len(input_batches[0])))
         zero_grad_inds.pop(sample_idx)
 
-        has_grad_outside_sample = input_batch.grad[zero_grad_inds].abs().sum().item() > 0
-        return not has_grad_outside_sample
+        has_grad_outside_sample = [
+            input_batch.grad[zero_grad_inds].abs().sum().item() for input_batch in input_batches
+        ]
+        return not any(has_grad_outside_sample)
 
 
 class BatchGradientVerificationCallback(VerificationCallbackBase):
@@ -104,19 +109,32 @@ class BatchGradientVerificationCallback(VerificationCallbackBase):
             self._raise()
 
 
-def default_input_mapping(data: Any) -> torch.Tensor:
+def default_input_mapping(data: Any) -> List[torch.Tensor]:
     """
-    Selects the first tensor in a collection and returns it.
+    Finds all tensors in a (nested) collection that have the same batch size.
 
     Args:
         data: a tensor or a collection of tensors (tuple, list, dict, etc.).
 
     Returns:
-        The first instance of a tensor in the collection. If the input was already a tensor, the tensor
-        itself is returned.
+        A list of all tensors with the same batch dimensions. If the input was already a tensor, a one-
+        element list with the tensor is returned.
+
+    >>> data = (torch.zeros(3, 1), "foo", torch.ones(3, 2), torch.rand(2))
+    >>> result = default_input_mapping(data)
+    >>> len(result)
+    2
+    >>> result[0].shape
+    torch.Size([3, 1])
+    >>> result[1].shape
+    torch.Size([3, 2])
     """
-    first = collect_tensors(data)[0]
-    return first
+    tensors = collect_tensors(data)
+    batches = []
+    for tensor in tensors:
+        if tensor.ndim > 0 and (not batches or tensor.size(0) == batches[0].size(0)):
+            batches.append(tensor)
+    return batches
 
 
 def default_output_mapping(data: Any) -> torch.Tensor:
@@ -145,15 +163,9 @@ def default_output_mapping(data: Any) -> torch.Tensor:
     if isinstance(data, torch.Tensor):
         return data
 
-    tensors = collect_tensors(data)
-    batches = []
-    for tensor in tensors:
-        if tensor.ndim > 0 and (not batches or tensor.size(0) == batches[0].size(0)):
-            batches.append(tensor)
-
+    batches = default_input_mapping(data)
     # cannot use .flatten(1) because of tensors with shape (B, )
     batches = [batch.view(batch.size(0), -1).float() for batch in batches]
-
     combined = torch.cat(batches, 1)  # combined batch has shape (B, N)
     return combined
 

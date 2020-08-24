@@ -122,20 +122,23 @@ def test_default_input_mapping():
     # Tensor
     data = tensor0.double()
     output = default_input_mapping(data)
-    assert torch.all(output == data)
+    assert len(output) == 1
+    assert output[0] is data
 
     # tuple
     data = ("foo", tensor1, tensor2, [])
-    output = default_input_mapping(data)
-    assert output is tensor1
+    out1, out2 = default_input_mapping(data)
+    assert out1 is tensor1
+    assert out2 is tensor2
 
     # dict + nesting
     data = {
         "one": ["foo", tensor2],
         "two": tensor0,
     }
-    output = default_input_mapping(data)
-    assert output is tensor2
+    out2, out0 = default_input_mapping(data)
+    assert out2 is tensor2
+    assert out0 is tensor0
 
 
 def test_default_output_mapping():
