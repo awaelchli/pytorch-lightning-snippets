@@ -4,7 +4,7 @@
 ## Normalization Layers and Biases
 
 It is not a good idea to combine network layers with biases (e.g. Conv) and normalization layers (e.g. BatchNorm). 
-Here is a tool that let's you check that this does not happen while you develop your networks.
+Here is a tool that let's you check that this does not accidentally happen while you develop your networks.
 
 ```python 
 from verification.batch_norm import BatchNormVerification
