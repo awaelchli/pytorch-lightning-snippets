@@ -80,3 +80,8 @@ Your model is mixing data across the batch dimension.
 This can lead to wrong gradient updates in the optimizer.
 Check the operations that reshape and permute tensor dimensions in your model.
 ```
+
+# Acknowledgement
+
+Thanks to @TylerYep for bringing the batch mixing trick to my attention in this [post ](https://github.com/PyTorchLightning/pytorch-lightning/issues/1237).
+It is a really good sanity check that is relatively easy to implement and it works great. 
