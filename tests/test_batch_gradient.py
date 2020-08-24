@@ -90,16 +90,20 @@ class LitModel(LightningModule):
     DictInputDictOutputModel,
 ])
 @pytest.mark.parametrize("mix_data", [True, False])
-def test_batch_gradient_verification(model_class, mix_data):
-    model = model_class(mix_data)
+@pytest.mark.parametrize("device", [torch.device("cpu"), torch.device("cuda", 0)])
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="Test requires GPU")
+def test_batch_gradient_verification(model_class, mix_data, device):
+    model = model_class(mix_data).to(device)
     is_valid = not mix_data
     verification = BatchGradientVerification(model)
     result = verification.check(input_array=model.input_array)
     assert result == is_valid
 
 
-def test_batch_gradient_verification_callback():
-    trainer = Trainer()
+@pytest.mark.parametrize("gpus", [0, 1])
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="Test requires GPU")
+def test_batch_gradient_verification_callback(gpus):
+    trainer = Trainer(gpus=gpus)
     model = LitModel(mix_data=True)
 
     expected = "Your model is mixing data across the batch dimension."

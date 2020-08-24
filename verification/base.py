@@ -5,7 +5,7 @@ import torch.nn as nn
 from typing import Any
 
 from pytorch_lightning import Callback, LightningModule
-from pytorch_lightning.utilities import rank_zero_warn
+from pytorch_lightning.utilities import rank_zero_warn, move_data_to_device
 
 
 class VerificationBase:
@@ -47,7 +47,14 @@ class VerificationBase:
         """
         if input_array is None and isinstance(self.model, LightningModule):
             input_array = self.model.example_input_array
-        return deepcopy(input_array)
+        input_array = deepcopy(input_array)
+
+        if isinstance(self.model, LightningModule):
+            input_array = self.model.transfer_batch_to_device(input_array, self.model.device)
+        else:
+            input_array = move_data_to_device(input_array, device=next(self.model.parameters()).device)
+
+        return input_array
 
     def _model_forward(self, input_array: Any) -> Any:
         """
