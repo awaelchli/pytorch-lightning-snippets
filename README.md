@@ -31,7 +31,7 @@ trainer.fit(model)
 
 It will print a warning if it detects a bad combination of bias and normalization in your model:
 
-```bash 
+```
 Detected a layer 'model.conv1' with bias followed by a normalization layer 'model.bn1'.
 This makes the normalization ineffective and can lead to unstable training.
 Either remove the normalization or turn off the bias.
@@ -75,7 +75,7 @@ trainer.fit(model)
 
 It will warn you if batch data mixing is detected:
 
-```bash 
+```
 Your model is mixing data across the batch dimension.
 This can lead to wrong gradient updates in the optimizer.
 Check the operations that reshape and permute tensor dimensions in your model.
