@@ -7,9 +7,39 @@ from pytorch_lightning.utilities.exceptions import MisconfigurationException
 from verification.base import VerificationBase, VerificationCallbackBase
 
 
+# TODO: enable grad check on multiple input tensors
 class BatchGradientVerification(VerificationBase):
+    """
+    Checks if a model mixes data across the batch dimension.
+    This can happen if reshape- and/or permutation operations are carried out in the wrong order or
+    on the wrong tensor dimensions.
+    """
 
     def check(self, input_array=None, input_mapping: Callable = None, output_mapping: Callable = None, sample_idx=0) -> bool:
+        """
+        Runs the test for data mixing across the batch.
+
+        Arguments:
+            input_array: A dummy input for the model. Can be a tuple or dict in case the model takes
+                multiple positional or named arguments.
+            input_mapping: An optional input mapping that returns all batched tensors in a input collection.
+                By default, we handle nested collections (tuples, lists, dicts) of tensors and pull them
+                out. If your batch is a custom object, you need to provide this input mapping yourself.
+                See :func:`default_input_mapping` for more information on the default behavior.
+            output_mapping: An optional output mapping that combines all batched tensors in the output
+                collection into one big batch of shape (B, N), where N is the total number of dimensions
+                that follow the batch dimension in each tensor. By default, we handle nested collections
+                (tuples, lists, dicts) of tensors and combine them automatically. See
+                :func:`default_output_mapping` for more information on the default behavior.
+            sample_idx:
+                The index `i` of the batch sample to run the test for. When computing the gradient of
+                a loss value on the `i-th` output w.r.t. the whole input, we expect the gradient to be
+                non-zero only on the `i-th` input sample and zero gradient on the rest of the batch.
+                Default: `i = 0`.
+
+        Returns:
+             `True` if the data in the batch does not mix during the forward pass, and `False` otherwise.
+        """
         input_mapping = input_mapping or default_input_mapping
         output_mapping = output_mapping or default_output_mapping
         input_array = self._get_input_array_copy(input_array)
@@ -33,6 +63,26 @@ class BatchGradientVerification(VerificationBase):
 
 
 class BatchGradientVerificationCallback(VerificationCallbackBase):
+    """
+    The callback version of the :class:`BatchGradientVerification` test.
+    Verification is performed right before training begins.
+    """
+
+    def __init__(self, input_mapping: Callable = None, output_mapping: Callable = None, sample_idx=0, **kwargs):
+        """
+        Arguments:
+            input_mapping: An optional input mapping that returns all batched tensors in a input collection.
+                See :meth:`BatchGradientVerification.check` for more information.
+            output_mapping: An optional output mapping that combines all batched tensors in the output
+                collection into one big batch. See :meth:`BatchGradientVerification.check` for more information.
+            sample_idx: The index of the batch sample to run the test for.
+                See :meth:`BatchGradientVerification.check` for more information.
+            **kwargs: Additional arguments for the base class :class:`VerificationCallbackBase`
+        """
+        super().__init__(**kwargs)
+        self._input_mapping = input_mapping
+        self._output_mapping = output_mapping
+        self._sample_idx = sample_idx
 
     def message(self):
         message = (
@@ -41,12 +91,6 @@ class BatchGradientVerificationCallback(VerificationCallbackBase):
             " Check the operations that reshape and permute tensor dimensions in your model."
         )
         return message
-
-    def __init__(self, input_mapping: Callable = None, output_mapping: Callable = None, sample_idx=0, **kwargs):
-        super().__init__(**kwargs)
-        self._input_mapping = input_mapping
-        self._output_mapping = output_mapping
-        self._sample_idx = sample_idx
 
     def on_train_start(self, trainer, pl_module):
         verification = BatchGradientVerification(pl_module)

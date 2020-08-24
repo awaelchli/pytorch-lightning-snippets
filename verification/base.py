@@ -9,12 +9,13 @@ from pytorch_lightning.utilities import rank_zero_warn
 
 
 class VerificationBase:
+    """
+    Base class for model verification.
+    All verifications should run with any :class:`torch.nn.Module` unless otherwise stated.
+    """
 
     def __init__(self, model: nn.Module):
         """
-        Base class for model verification.
-        All verifications should run with any :class:`torch.nn.Module` unless otherwise stated.
-
         Arguments:
             model: The model to run verification for.
         """
@@ -69,14 +70,14 @@ class VerificationBase:
 
 
 class VerificationCallbackBase(Callback):
-
+    """
+    Base class for model verification in form of a callback.
+    This type of verification is expected to only work with
+    :class:`~pytorch_lightning.core.lightning.LightningModule` and will take the input array
+    from :attr:`~pytorch_lightning.core.lightning.LightningModule.example_input_array` if needed.
+    """
     def __init__(self, warn: bool = True, error: bool = False):
         """
-        Base class for model verification in form of a callback.
-        This type of verification is expected to only work with
-        :class:`~pytorch_lightning.core.lightning.LightningModule` and will take the input array
-        from :attr:`~pytorch_lightning.core.lightning.LightningModule.example_input_array` if needed.
-
         Arguments:
             warn: If `True`, prints a warning message when verification fails. Default: `True`.
             error: If `True`, prints a error message when verification fails. Default: `False`.
