@@ -46,30 +46,29 @@ class InputMonitor(Callback):
     @staticmethod
     def log_histograms(trainer, batch):
         logger = trainer.logger
-
         batch = apply_to_collection(batch, dtype=np.ndarray, function=torch.from_numpy)
         named_tensors = dict()
-        collect_and_name_tensors(batch, named_tensors)
+        collect_and_name_tensors(batch, accumulator=named_tensors, parent_name="input")
 
-        for name, tensor in named_tensors:
+        for name, tensor in named_tensors.items():
             if isinstance(logger, TensorBoardLogger):
                 logger.experiment.add_histogram(
                     tag=name,
-                    values=batch,
+                    values=tensor,
                     global_step=trainer.global_step
                 )
 
             if isinstance(logger, WandbLogger):
                 logger.experiment.log(
-                    row={name: wandb.Histogram(batch)},
+                    row={name: wandb.Histogram(tensor)},
                     commit=False,  # TODO: needed ?
                     step=trainer.global_step,
                 )
 
 
-def collect_and_name_tensors(data, accumulator, parent_name=""):
+def collect_and_name_tensors(data, accumulator, parent_name="input"):
     if isinstance(data, Tensor):
-        name = f"{parent_name}_{shape2str(data)}"
+        name = f"{parent_name}/{shape2str(data)}"
         accumulator[name] = data
 
     if isinstance(data, dict):
@@ -78,8 +77,8 @@ def collect_and_name_tensors(data, accumulator, parent_name=""):
 
     if isinstance(data, Sequence) and not isinstance(data, str):
         for i, item in enumerate(data):
-            collect_and_name_tensors(item, accumulator, parent_name=f"{parent_name}_{i:d}")
+            collect_and_name_tensors(item, accumulator, parent_name=f"{parent_name}/{i:d}")
 
 
 def shape2str(tensor):
-    return "x".join(map(str, tensor.shape))
+    return "(" + ", ".join(map(str, tensor.shape)) + ")"
