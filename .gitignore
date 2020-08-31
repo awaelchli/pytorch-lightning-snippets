@@ -129,3 +129,4 @@ dmypy.json
 # Project Files
 mnist
 *.ckpt
+*events.out.tfevents*
