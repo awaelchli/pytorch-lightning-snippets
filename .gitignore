@@ -125,3 +125,7 @@ dmypy.json
 
 # PyCharm
 .idea
+
+# Project Files
+mnist
+*.ckpt
