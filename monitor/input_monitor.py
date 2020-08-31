@@ -42,7 +42,16 @@ class InputMonitor(Callback):
     def on_train_batch_start(self, trainer, pl_module, batch, batch_idx, dataloader_idx):
         """ Logs the histograms at the interval defined by `row_log_interval`, given a logger is available. """
         if self._log and (batch_idx + 1) % self._row_log_interval == 0:
-            self._log_histograms(trainer, batch)
+            self.log_histograms(trainer, batch)
+
+    def log_histograms(self, trainer, batch) -> None:
+        logger = trainer.logger
+        batch = apply_to_collection(batch, dtype=np.ndarray, function=torch.from_numpy)
+        named_tensors = dict()
+        collect_and_name_tensors(batch, output=named_tensors, parent_name="input")
+
+        for name, tensor in named_tensors.items():
+            self.log_histogram(logger, tensor, name, trainer.global_step)
 
     def log_histogram(self, logger: Any, tensor: Tensor, name: str, global_step: int) -> None:
         """
@@ -82,15 +91,6 @@ class InputMonitor(Callback):
             )
             available = False
         return available
-
-    def _log_histograms(self, trainer, batch) -> None:
-        logger = trainer.logger
-        batch = apply_to_collection(batch, dtype=np.ndarray, function=torch.from_numpy)
-        named_tensors = dict()
-        collect_and_name_tensors(batch, output=named_tensors, parent_name="input")
-
-        for name, tensor in named_tensors.items():
-            self.log_histogram(logger, tensor, name, trainer.global_step)
 
 
 def collect_and_name_tensors(data: Any, output: Dict[str, Tensor], parent_name: str = "input") -> None:
