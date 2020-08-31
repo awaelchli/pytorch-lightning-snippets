@@ -47,6 +47,7 @@ class InputMonitor(Callback):
     def log_histogram(self, logger: Any, tensor: Tensor, name: str, global_step: int) -> None:
         """
         Override this method to customize the logging of histograms.
+        Detaches the tensor from the graph and moves it to the CPU for logging.
 
         Args:
             logger: The logger currently in use
@@ -54,6 +55,7 @@ class InputMonitor(Callback):
             name: The name of the tensor as determined by the callback. Example: ``ìnput/0/[64, 1, 28, 28]``
             global_step: The current global step
         """
+        tensor = tensor.detach().cpu()
         if isinstance(logger, TensorBoardLogger):
             logger.experiment.add_histogram(
                 tag=name,
