@@ -1,7 +1,27 @@
 
-# Model Verification
+# PyTorch Lightning Snippets
+A collection of useful tools around PyTorch Lightning.
 
-## Normalization Layers and Biases
+## Callbacks
+
+### Monitoring Inputs
+
+Callback that logs a histogram of each tensor passed to the `training_step` method. Useful for debugging and sanity checking the pre-processing pipeline.
+Currently supports TensorBoard and WandbLogger.
+
+```python 
+from monitor.input_monitor import InputMonitor
+from pytorch_lightning import Trainer
+
+model = YourLightningModule()
+monitor = InputMonitor(row_log_interval=row_log_interval)
+trainer = Trainer(callbacks=[monitor])
+trainer.fit()
+```
+
+## Model Verification
+
+### Normalization Layers and Biases
 
 It is not a good idea to combine network layers with biases (e.g. Conv) and normalization layers (e.g. BatchNorm). 
 Here is a tool that let's you check that this does not accidentally happen while you develop your networks.
@@ -37,7 +57,7 @@ This makes the normalization ineffective and can lead to unstable training.
 Either remove the normalization or turn off the bias.
 ```
 
-## Mixing Data Across the Batch Dimension
+### Mixing Data Across the Batch Dimension
 
 Gradient descent over a batch of samples can not only benefit the optimization but also leverages data parallelism.
 However, you have to be careful not to mix data across the batch. 
@@ -81,7 +101,7 @@ This can lead to wrong gradient updates in the optimizer.
 Check the operations that reshape and permute tensor dimensions in your model.
 ```
 
-# Acknowledgement
+## Acknowledgement
 
 Thanks to [Tyler Yep](https://github.com/TylerYep) for bringing the batch mixing trick to my attention in this [post](https://github.com/PyTorchLightning/pytorch-lightning/issues/1237).
 It is a really good sanity check that is relatively easy to implement and it works great. 
