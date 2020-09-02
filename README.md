@@ -81,6 +81,23 @@ This can lead to wrong gradient updates in the optimizer.
 Check the operations that reshape and permute tensor dimensions in your model.
 ```
 
+# Callbacks
+
+## Monitoring Inputs
+
+Callback that logs a histogram of each tensor passed to the `training_step` method. Useful for debugging and sanity checking the pre-processing pipeline.
+Currently supports TensorBoard and WandbLogger.
+
+```python 
+from monitor.input_monitor import InputMonitor
+from pytorch_lightning import Trainer
+
+model = YourLightningModule()
+monitor = InputMonitor(row_log_interval=row_log_interval)
+trainer = Trainer(callbacks=[monitor])
+trainer.fit()
+```
+
 # Acknowledgement
 
 Thanks to [Tyler Yep](https://github.com/TylerYep) for bringing the batch mixing trick to my attention in this [post](https://github.com/PyTorchLightning/pytorch-lightning/issues/1237).
