@@ -2,6 +2,12 @@
 # PyTorch Lightning Snippets
 A collection of useful tools around PyTorch Lightning.
 
+#### Installation:
+```bash
+pip install git+https://github.com/awaelchli/pytorch-lightning-snippets
+```
+
+
 ## Callbacks
 
 ### Monitoring Inputs
