@@ -1,4 +1,21 @@
 
+# Callbacks
+
+## Monitoring Inputs
+
+Callback that logs a histogram of each tensor passed to the `training_step` method. Useful for debugging and sanity checking the pre-processing pipeline.
+Currently supports TensorBoard and WandbLogger.
+
+```python 
+from monitor.input_monitor import InputMonitor
+from pytorch_lightning import Trainer
+
+model = YourLightningModule()
+monitor = InputMonitor(row_log_interval=row_log_interval)
+trainer = Trainer(callbacks=[monitor])
+trainer.fit()
+```
+
 # Model Verification
 
 ## Normalization Layers and Biases
@@ -79,23 +96,6 @@ It will warn you if batch data mixing is detected:
 Your model is mixing data across the batch dimension.
 This can lead to wrong gradient updates in the optimizer.
 Check the operations that reshape and permute tensor dimensions in your model.
-```
-
-# Callbacks
-
-## Monitoring Inputs
-
-Callback that logs a histogram of each tensor passed to the `training_step` method. Useful for debugging and sanity checking the pre-processing pipeline.
-Currently supports TensorBoard and WandbLogger.
-
-```python 
-from monitor.input_monitor import InputMonitor
-from pytorch_lightning import Trainer
-
-model = YourLightningModule()
-monitor = InputMonitor(row_log_interval=row_log_interval)
-trainer = Trainer(callbacks=[monitor])
-trainer.fit()
 ```
 
 # Acknowledgement
