@@ -21,9 +21,9 @@ def test_row_log_interval_override(tmpdir, row_log_interval, max_steps, expected
         max_steps=max_steps,
         callbacks=[monitor]
     )
-    with mock.patch.object(TrainingDataMonitor, 'log_histograms', wraps=monitor.log_histograms) as mocked_monitor:
+    with mock.patch.object(TrainingDataMonitor, 'log_histogram', wraps=monitor.log_histogram) as mocked_monitor:
         trainer.fit(model)
-        assert mocked_monitor.call_count == expected_calls
+        assert mocked_monitor.call_count == (expected_calls * 2)  # 2 tensors per log call
 
 
 @pytest.mark.parametrize(["row_log_interval", "max_steps", "expected_calls"], [
@@ -42,9 +42,9 @@ def test_row_log_interval_fallback(tmpdir, row_log_interval, max_steps, expected
         max_steps=max_steps,
         callbacks=[monitor]
     )
-    with mock.patch.object(TrainingDataMonitor, 'log_histograms', wraps=monitor.log_histograms) as mocked_monitor:
+    with mock.patch.object(TrainingDataMonitor, 'log_histogram', wraps=monitor.log_histogram) as mocked_monitor:
         trainer.fit(model)
-        assert mocked_monitor.call_count == expected_calls
+        assert mocked_monitor.call_count == (expected_calls * 2)  # 2 tensors per log call
 
 
 def test_no_logger_warning():
