@@ -27,7 +27,7 @@ trainer.fit()
 <details>
     <summary>Screenshot</summary>
     <br>
-    <img src="images/training-data-monitor.png" alt="Screenshot training data histogram in TensorBoard"/>
+    <img src="images/training-data-monitor.png" alt="Screenshot of training data histogram in TensorBoard"/>
 </details>
 
 
@@ -54,6 +54,12 @@ model = YourLightningModule()
 trainer = Trainer(callbacks=[monitor])
 trainer.fit()
 ```
+
+<details>
+    <summary>Screenshot</summary>
+    <br>
+    <img src="images/module-data-monitor.png" alt="Screenshot of in- and output histograms of each submodule"/>
+</details>
 
 
 ## Model Verification
