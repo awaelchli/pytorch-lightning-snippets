@@ -12,6 +12,13 @@ class TrainingDataMonitor(DataMonitorBase):
         Args:
             row_log_interval: The interval at which histograms should be logged. This defaults to the
                 interval defined in the Trainer. Use this to override the Trainer default.
+
+        Example:
+
+            .. code-block:: python
+
+                # log histogram of training data passed to `LightningModule.training_step`
+                trainer = Trainer(callbacks=[TrainingDataMonitor()])
         """
         super().__init__(row_log_interval=row_log_interval)
 
