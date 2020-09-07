@@ -9,20 +9,45 @@ pip install git+https://github.com/awaelchli/pytorch-lightning-snippets
 
 ## Callbacks
 
-### Monitoring Inputs
+### Monitoring Training Data
 
 Callback that logs a histogram of each tensor passed to the `training_step` method. Useful for debugging and sanity checking the pre-processing pipeline.
 Currently supports TensorBoard and WandbLogger.
 
 ```python 
-from monitor.input_monitor import InputMonitor
+from monitor import TrainingDataMonitor
 from pytorch_lightning import Trainer
 
 model = YourLightningModule()
-monitor = InputMonitor(row_log_interval=row_log_interval)
+monitor = TrainingDataMonitor(row_log_interval=25)
 trainer = Trainer(callbacks=[monitor])
 trainer.fit()
 ```
+
+### Monitoring In- and Outputs of Network Layers
+
+Callback that logs a histogram of each input and output of the specified list of submodules.
+Useful for debugging and monitoring custom layers.
+Currently supports TensorBoard and WandbLogger.
+
+```python 
+from monitor import ModuleDataMonitor
+from pytorch_lightning import Trainer
+
+# log the in- and output histograms of LightningModule's `forward`
+monitor = ModuleDataMonitor()
+
+# all submodules in LightningModule
+monitor = ModuleDataMonitor(submodules=True)
+
+# specific submodules
+monitor = ModuleDataMonitor(submodules=["generator", "generator.conv1"])
+
+model = YourLightningModule()
+trainer = Trainer(callbacks=[monitor])
+trainer.fit()
+```
+
 
 ## Model Verification
 
