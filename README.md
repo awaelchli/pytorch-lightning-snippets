@@ -24,7 +24,7 @@ trainer = Trainer(callbacks=[monitor])
 trainer.fit()
 ```
 
-<details>
+<details open>
     <summary>Screenshot</summary>
     <br>
     <img src="images/training-data-monitor.png" alt="Screenshot of training data histogram in TensorBoard"/>
