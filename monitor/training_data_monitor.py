@@ -15,6 +15,6 @@ class TrainingDataMonitor(DataMonitorBase):
         """
         super().__init__(row_log_interval=row_log_interval)
 
-    def on_train_batch_start(self, trainer, pl_module, batch, batch_idx, dataloader_idx):
-        super().on_train_batch_start(trainer, pl_module, batch, batch_idx, dataloader_idx)
+    def on_train_batch_start(self, trainer, pl_module, batch, *args, **kwargs):
+        super().on_train_batch_start(trainer, pl_module, batch, *args, **kwargs)
         self.log_histograms(batch, group=self.GROUP_NAME)

@@ -1,6 +1,7 @@
 from typing import List, Optional, Union
 
 import torch.nn as nn
+from torch.utils.hooks import RemovableHandle
 
 from monitor.data_monitor_base import DataMonitorBase
 from pytorch_lightning import LightningModule, Trainer
@@ -45,7 +46,25 @@ class ModuleDataMonitor(DataMonitorBase):
         self._submodule_names = submodules
         self._hook_handles = []
 
-    def submodule_names(self, root_module: nn.Module):
+    def on_train_start(self, trainer: Trainer, pl_module: LightningModule):
+        super().on_train_start(trainer, pl_module)
+        submodule_dict = dict(pl_module.named_modules())
+        self._hook_handles = []
+        for name in self._get_submodule_names(pl_module):
+            if name not in submodule_dict:
+                rank_zero_warn(
+                    f"{name} is not a valid identifier for a submodule in {pl_module.__class__.__name__},"
+                    " skipping this key."
+                )
+                continue
+            handle = self._register_hook(name, submodule_dict[name])
+            self._hook_handles.append(handle)
+
+    def on_train_end(self, trainer, pl_module):
+        for handle in self._hook_handles:
+            handle.remove()
+
+    def _get_submodule_names(self, root_module: nn.Module) -> List[str]:
         # default is the root module only
         names = [""]
 
@@ -57,25 +76,7 @@ class ModuleDataMonitor(DataMonitorBase):
 
         return names
 
-    def on_train_start(self, trainer: Trainer, pl_module: LightningModule):
-        super().on_train_start(trainer, pl_module)
-        submodule_dict = dict(pl_module.named_modules())
-        self._hook_handles = []
-        for name in self.submodule_names(pl_module):
-            if name not in submodule_dict:
-                rank_zero_warn(
-                    f"{name} is not a valid identifier for a submodule in {pl_module.__class__.__name__},"
-                    " skipping this key."
-                )
-                continue
-            handle = self.register_hook(name, submodule_dict[name])
-            self._hook_handles.append(handle)
-
-    def on_train_end(self, trainer, pl_module):
-        for handle in self._hook_handles:
-            handle.remove()
-
-    def register_hook(self, module_name: str, module: nn.Module):
+    def _register_hook(self, module_name: str, module: nn.Module) -> RemovableHandle:
         input_group_name = f"{self.GROUP_NAME_INPUT}/{module_name}" if module_name else self.GROUP_NAME_INPUT
         output_group_name = f"{self.GROUP_NAME_OUTPUT}/{module_name}" if module_name else self.GROUP_NAME_OUTPUT
 
