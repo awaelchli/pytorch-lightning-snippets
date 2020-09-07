@@ -24,6 +24,13 @@ trainer = Trainer(callbacks=[monitor])
 trainer.fit()
 ```
 
+<details>
+    <summary>Screenshot</summary>
+    <br>
+    <img src="images/training-data-monitor.png" alt="Screenshot training data histogram in TensorBoard"/>
+</details>
+
+
 ### Monitoring In- and Outputs of Network Layers
 
 Callback that logs a histogram of each input and output of the specified list of submodules.
