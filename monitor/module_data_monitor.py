@@ -9,6 +9,9 @@ from pytorch_lightning.utilities import rank_zero_warn
 
 class ModuleDataMonitor(DataMonitorBase):
 
+    GROUP_NAME_INPUT = "input"
+    GROUP_NAME_OUTPUT = "output"
+
     def __init__(self, submodules: Optional[Union[bool, List[str]]] = None, row_log_interval: int = None):
         """
         Args:
@@ -73,8 +76,8 @@ class ModuleDataMonitor(DataMonitorBase):
             handle.remove()
 
     def register_hook(self, module_name: str, module: nn.Module):
-        input_group_name = f"input/{module_name}" if module_name else "input"
-        output_group_name = f"output/{module_name}" if module_name else "output"
+        input_group_name = f"{self.GROUP_NAME_INPUT}/{module_name}" if module_name else self.GROUP_NAME_INPUT
+        output_group_name = f"{self.GROUP_NAME_OUTPUT}/{module_name}" if module_name else self.GROUP_NAME_OUTPUT
 
         def hook(_, inp, out):
             inp = inp[0] if len(inp) == 1 else inp

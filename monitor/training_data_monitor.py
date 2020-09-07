@@ -3,6 +3,8 @@ from monitor.data_monitor_base import DataMonitorBase
 
 class TrainingDataMonitor(DataMonitorBase):
 
+    GROUP_NAME = "training_step"
+
     def __init__(self, row_log_interval: int = None):
         """
         Callback that logs the histogram of values in the batched data passed to `training_step`.
@@ -15,4 +17,4 @@ class TrainingDataMonitor(DataMonitorBase):
 
     def on_train_batch_start(self, trainer, pl_module, batch, batch_idx, dataloader_idx):
         super().on_train_batch_start(trainer, pl_module, batch, batch_idx, dataloader_idx)
-        self.log_histograms(batch, group="training_step")
+        self.log_histograms(batch, group=self.GROUP_NAME)
