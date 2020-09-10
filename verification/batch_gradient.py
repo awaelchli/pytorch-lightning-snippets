@@ -64,7 +64,10 @@ class BatchGradientVerification(VerificationBase):
         has_grad_outside_sample = [
             input_batch.grad[zero_grad_inds].abs().sum().item() for input_batch in input_batches
         ]
-        return not any(has_grad_outside_sample)
+        has_grad_inside_sample = [
+            input_batch.grad[sample_idx].abs().sum().item() for input_batch in input_batches
+        ]
+        return not any(has_grad_outside_sample) and all(has_grad_inside_sample)
 
 
 class BatchGradientVerificationCallback(VerificationCallbackBase):
