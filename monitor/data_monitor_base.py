@@ -78,7 +78,7 @@ class DataMonitorBase(Callback):
         tensor = tensor.detach().cpu()
         if isinstance(logger, TensorBoardLogger):
             logger.experiment.add_histogram(
-                tag=name, values=tensor,
+                tag=name, values=tensor, global_step=self._trainer.global_step
             )
 
         if isinstance(logger, WandbLogger):
