@@ -83,7 +83,7 @@ class DataMonitorBase(Callback):
 
         if isinstance(logger, WandbLogger):
             logger.experiment.log(
-                row={name: wandb.Histogram(tensor)}, commit=False,
+                data={name: wandb.Histogram(tensor)}, commit=False,
             )
 
     def _is_logger_available(self, logger) -> bool:
