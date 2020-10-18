@@ -11,8 +11,9 @@ from tests.templates.base import TemplateModelBase
 @pytest.mark.parametrize(
     ["log_every_n_steps", "max_steps", "expected_calls"], [pytest.param(3, 10, 3)]
 )
+@mock.patch("monitor.training_data_monitor.TrainingDataMonitor.log_histogram")
 def test_log_interval_override(
-    tmpdir, log_every_n_steps, max_steps, expected_calls
+    log_histogram, tmpdir, log_every_n_steps, max_steps, expected_calls
 ):
     """ Test logging interval set by log_every_n_steps argument. """
     monitor = TrainingDataMonitor(log_every_n_steps=log_every_n_steps)
@@ -23,13 +24,9 @@ def test_log_interval_override(
         max_steps=max_steps,
         callbacks=[monitor],
     )
-    with mock.patch.object(
-        TrainingDataMonitor, "log_histogram", wraps=monitor.log_histogram
-    ) as mocked_monitor:
-        trainer.fit(model)
-        assert mocked_monitor.call_count == (
-            expected_calls * 2
-        )  # 2 tensors per log call
+
+    trainer.fit(model)
+    assert log_histogram.call_count == (expected_calls * 2)  # 2 tensors per log call
 
 
 @pytest.mark.parametrize(
@@ -41,8 +38,9 @@ def test_log_interval_override(
         pytest.param(6, 5, 0),
     ],
 )
+@mock.patch("monitor.training_data_monitor.TrainingDataMonitor.log_histogram")
 def test_log_interval_fallback(
-    tmpdir, log_every_n_steps, max_steps, expected_calls
+    log_histogram, tmpdir, log_every_n_steps, max_steps, expected_calls
 ):
     """ Test that if log_every_n_steps not set in the callback, fallback to what is defined in the Trainer. """
     monitor = TrainingDataMonitor()
@@ -53,13 +51,8 @@ def test_log_interval_fallback(
         max_steps=max_steps,
         callbacks=[monitor],
     )
-    with mock.patch.object(
-        TrainingDataMonitor, "log_histogram", wraps=monitor.log_histogram
-    ) as mocked_monitor:
-        trainer.fit(model)
-        assert mocked_monitor.call_count == (
-            expected_calls * 2
-        )  # 2 tensors per log call
+    trainer.fit(model)
+    assert log_histogram.call_count == (expected_calls * 2)  # 2 tensors per log call
 
 
 def test_no_logger_warning():
