@@ -88,7 +88,7 @@ class DataMonitorBase(Callback):
 
     def _is_logger_available(self, logger) -> bool:
         available = True
-        if logger is None:
+        if not logger:
             rank_zero_warn("Cannot log histograms because Trainer has no logger.")
             available = False
         if not isinstance(logger, self.supported_loggers):
