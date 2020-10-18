@@ -79,5 +79,4 @@ def test_unsupported_logger_warning(tmpdir):
     with pytest.warns(
         UserWarning, match="does not support logging with LoggerCollection"
     ):
-        print(trainer.log_every_n_steps)
         monitor.on_train_start(trainer, pl_module=None)
