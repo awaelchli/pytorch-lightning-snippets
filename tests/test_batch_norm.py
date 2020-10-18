@@ -2,7 +2,7 @@ import pytest
 import torch
 from torch import nn as nn
 
-from pytorch_lightning import Trainer, LightningModule, TrainResult
+from pytorch_lightning import Trainer, LightningModule
 from torch.optim import Adam
 from torch.utils.data import DataLoader, TensorDataset
 
@@ -10,7 +10,6 @@ from verification.batch_norm import BatchNormVerification, BatchNormVerification
 
 
 class ConvBiasBatchNormModel(nn.Module):
-
     def __init__(self, use_bias=True):
         super().__init__()
         self.conv = nn.Conv2d(3, 5, kernel_size=1, bias=use_bias)
@@ -23,7 +22,6 @@ class ConvBiasBatchNormModel(nn.Module):
 
 
 class LitModel(LightningModule):
-
     def __init__(self, *args, **kwargs):
         super().__init__()
         self.model = ConvBiasBatchNormModel(*args, **kwargs)
@@ -41,13 +39,10 @@ class LitModel(LightningModule):
     def training_step(self, batch, batch_idx):
         output = self(batch[0])
         loss = output.sum()
-        return TrainResult(minimize=loss)
+        return loss
 
 
-@pytest.mark.parametrize(["use_bias"], [
-    pytest.param(True),
-    pytest.param(False)
-])
+@pytest.mark.parametrize(["use_bias"], [pytest.param(True), pytest.param(False)])
 @pytest.mark.parametrize("device", [torch.device("cpu"), torch.device("cuda", 0)])
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="Test requires GPU")
 def test_conv_bias_batch_norm_model(use_bias, device):

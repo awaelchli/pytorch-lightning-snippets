@@ -13,14 +13,18 @@ class ModuleDataMonitor(DataMonitorBase):
     GROUP_NAME_INPUT = "input"
     GROUP_NAME_OUTPUT = "output"
 
-    def __init__(self, submodules: Optional[Union[bool, List[str]]] = None, row_log_interval: int = None):
+    def __init__(
+        self,
+        submodules: Optional[Union[bool, List[str]]] = None,
+        log_every_n_steps: int = None,
+    ):
         """
         Args:
             submodules: If `True`, logs the in- and output histograms of every submodule in the
                 LightningModule, including the root module itself.
                 This parameter can also take a list of names of specifc submodules (see example below).
                 Default: `None`, logs only the in- and output of the root module.
-            row_log_interval: The interval at which histograms should be logged. This defaults to the
+            log_every_n_steps: The interval at which histograms should be logged. This defaults to the
                 interval defined in the Trainer. Use this to override the Trainer default.
 
         Note:
@@ -42,7 +46,7 @@ class ModuleDataMonitor(DataMonitorBase):
                 trainer = Trainer(callbacks=[ModuleDataMonitor(submodules=["generator", "generator.conv1"])])
 
         """
-        super().__init__(row_log_interval=row_log_interval)
+        super().__init__(log_every_n_steps=log_every_n_steps)
         self._submodule_names = submodules
         self._hook_handles = []
 
@@ -77,8 +81,16 @@ class ModuleDataMonitor(DataMonitorBase):
         return names
 
     def _register_hook(self, module_name: str, module: nn.Module) -> RemovableHandle:
-        input_group_name = f"{self.GROUP_NAME_INPUT}/{module_name}" if module_name else self.GROUP_NAME_INPUT
-        output_group_name = f"{self.GROUP_NAME_OUTPUT}/{module_name}" if module_name else self.GROUP_NAME_OUTPUT
+        input_group_name = (
+            f"{self.GROUP_NAME_INPUT}/{module_name}"
+            if module_name
+            else self.GROUP_NAME_INPUT
+        )
+        output_group_name = (
+            f"{self.GROUP_NAME_OUTPUT}/{module_name}"
+            if module_name
+            else self.GROUP_NAME_OUTPUT
+        )
 
         def hook(_, inp, out):
             inp = inp[0] if len(inp) == 1 else inp

@@ -91,7 +91,7 @@ class BatchNormVerificationCallback(VerificationCallbackBase):
         self._verification = BatchNormVerification(pl_module)
         self._verification.register_hooks()
 
-    def on_train_batch_end(self, trainer, pl_module, batch, batch_idx, dataloader_idx):
+    def on_train_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
         if batch_idx > 0:
             return
         detected_pairs = self._verification.collect_detections()

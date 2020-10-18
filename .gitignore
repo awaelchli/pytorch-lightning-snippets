@@ -128,5 +128,7 @@ dmypy.json
 
 # Project Files
 mnist
+lightning_logs
+wandb
 *.ckpt
 *events.out.tfevents*
