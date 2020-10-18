@@ -11,10 +11,10 @@ from tests.templates.base import TemplateModelBase
 @pytest.mark.parametrize(
     ["log_every_n_steps", "max_steps", "expected_calls"], [pytest.param(3, 10, 3)]
 )
-def test_row_log_interval_override(
+def test_log_interval_override(
     tmpdir, log_every_n_steps, max_steps, expected_calls
 ):
-    """ Test logging interval set by row_log_interval argument. """
+    """ Test logging interval set by log_every_n_steps argument. """
     monitor = TrainingDataMonitor(log_every_n_steps=log_every_n_steps)
     model = TemplateModelBase()
     trainer = Trainer(
@@ -41,10 +41,10 @@ def test_row_log_interval_override(
         pytest.param(6, 5, 0),
     ],
 )
-def test_row_log_interval_fallback(
+def test_log_interval_fallback(
     tmpdir, log_every_n_steps, max_steps, expected_calls
 ):
-    """ Test that if row_log_interval not set in the callback, fallback to what is defined in the Trainer. """
+    """ Test that if log_every_n_steps not set in the callback, fallback to what is defined in the Trainer. """
     monitor = TrainingDataMonitor()
     model = TemplateModelBase()
     trainer = Trainer(
