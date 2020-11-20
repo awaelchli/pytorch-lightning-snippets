@@ -45,15 +45,14 @@ def peek(args):
     file = Path(args.file).absolute()
     ckpt = torch.load(file, map_location=torch.device("cpu"))
     selection = dict()
-    args.attributes = args.attributes or list(ckpt.keys())
-    if args.attributes:
-        for name in args.attributes:
-            parts = name.split(".")
-            current = ckpt
-            for part in parts:
-                current = get_attribute(current, part)
-            selection.update({name: current})
-        pretty_print(selection)
+    attribute_names = args.attributes or list(ckpt.keys())
+    for name in attribute_names:
+        parts = name.split("/")
+        current = ckpt
+        for part in parts:
+            current = get_attribute(current, part)
+        selection.update({name: current})
+    pretty_print(selection)
 
 
 def main():
