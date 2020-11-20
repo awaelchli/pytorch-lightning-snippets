@@ -13,7 +13,7 @@ class COLORS:
     END = "\033[0m"
 
 
-PRIMITIVE_TYPES = (int, float, bool, str)
+PRIMITIVE_TYPES = (int, float, bool, str, type)
 
 
 def pretty_print(contents: dict):
