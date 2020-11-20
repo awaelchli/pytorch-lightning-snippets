@@ -45,7 +45,7 @@ def get_attribute(obj: object, name: str) -> object:
     return getattr(object, name)
 
 
-def peek(args):
+def peek(args: Namespace):
     file = Path(args.file).absolute()
     ckpt = torch.load(file, map_location=torch.device("cpu"))
     selection = dict()
@@ -58,11 +58,31 @@ def peek(args):
         selection.update({name: current})
     pretty_print(selection)
 
+    if args.interactive:
+        code.interact(
+            banner="Entering interactive shell. You can access the checkpoint contents through the local variable 'checkpoint'.",
+            local={"checkpoint": ckpt, "torch": torch},
+        )
+
 
 def main():
     parser = ArgumentParser()
-    parser.add_argument("file", type=str)
-    parser.add_argument("attributes", nargs="*")
+    parser.add_argument(
+        "file",
+        type=str,
+        help="The checkpoint file to inspect. Must be a pickle binary saved with 'torch.save'.",
+    )
+    parser.add_argument(
+        "attributes",
+        nargs="*",
+        help="Name of one or several attributes to query. To access an attribute within a nested structure, use '/' as separator.",
+    )
+    parser.add_argument(
+        "--interactive",
+        "-i",
+        action="store_true",
+        help="Drops into interactive shell after printing the summary.",
+    )
     args = parser.parse_args()
     peek(args)
 
