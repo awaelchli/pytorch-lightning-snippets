@@ -9,7 +9,9 @@ pip install git+https://github.com/awaelchli/pytorch-lightning-snippets
 
 ## Callbacks
 
-### Monitoring Training Data
+### Monitoring Training Data 
+
+:star: THIS HAS MOVED TO [PYTORCH LIGHTNING BOLTS](https://pytorch-lightning-bolts.readthedocs.io/en/latest/info_callbacks.html#data-monitoring-in-lightningmodule)!  :star:
 
 Callback that logs a histogram of each tensor passed to the `training_step` method. Useful for debugging and sanity checking the pre-processing pipeline.
 Currently supports TensorBoard and WandbLogger.
@@ -32,6 +34,8 @@ trainer.fit()
 
 
 ### Monitoring In- and Outputs of Network Layers
+
+:star: THIS HAS MOVED TO [PYTORCH LIGHTNING BOLTS](https://pytorch-lightning-bolts.readthedocs.io/en/latest/info_callbacks.html#data-monitoring-in-lightningmodule)!  :star:
 
 Callback that logs a histogram of each input and output of the specified list of submodules.
 Useful for debugging and monitoring custom layers.
