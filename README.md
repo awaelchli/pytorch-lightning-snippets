@@ -195,7 +195,7 @@ peek path/to/checkpoint.ckpt
 Output:
 ```bash 
  checkpoint_callback_best_model_path: str = '/home/adrian/test/lightning_logs/version_1/checkpoints/epoch=12.ckpt'
-checkpoint_callback_best_model_score: Tensor, shape=[], dtype=torch.float32
+checkpoint_callback_best_model_score: Tensor = 0.8079413175582886
                                epoch: int = 12
                          global_step: int = 295240
                         hparams_name: str = 'args'
