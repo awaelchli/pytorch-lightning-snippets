@@ -224,8 +224,7 @@ You can inspect and modify the contents in interactive mode:
 peek -i path/to/checkpoint.ckpt
 ```
 Output:
-```bash 
-
+``` 
 Entering interactive shell. You can access the checkpoint contents through the local variable 'checkpoint'.
 >>> checkpoint["global_step"]
 295240
