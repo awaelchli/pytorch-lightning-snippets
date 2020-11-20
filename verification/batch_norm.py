@@ -37,10 +37,12 @@ class BatchNormVerification(VerificationBase):
         self.destroy_hooks()
         self.collect_detections()
         return not self._detected_pairs
-    
+
     def collect_detections(self):
         detected_pairs = []
-        for (name0, mod0), (name1, mod1) in zip(self._module_sequence[:-1], self._module_sequence[1:]):
+        for (name0, mod0), (name1, mod1) in zip(
+            self._module_sequence[:-1], self._module_sequence[1:]
+        ):
             bias = getattr(mod0, "bias", None)
             detected = (
                 isinstance(mod1, self.normalization_layer)
@@ -63,6 +65,7 @@ class BatchNormVerification(VerificationBase):
     def _create_hook(self, module_name) -> Callable:
         def hook(module, inp_, out_):
             self._module_sequence.append((module_name, module))
+
         return hook
 
     def destroy_hooks(self):
@@ -72,7 +75,6 @@ class BatchNormVerification(VerificationBase):
 
 
 class BatchNormVerificationCallback(VerificationCallbackBase):
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._verification = None
@@ -91,7 +93,9 @@ class BatchNormVerificationCallback(VerificationCallbackBase):
         self._verification = BatchNormVerification(pl_module)
         self._verification.register_hooks()
 
-    def on_train_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
+    def on_train_batch_end(
+        self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx
+    ):
         if batch_idx > 0:
             return
         detected_pairs = self._verification.collect_detections()
