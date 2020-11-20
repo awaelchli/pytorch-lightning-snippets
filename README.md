@@ -174,7 +174,7 @@ trainer = Trainer(callbacks=[snapshot])
 trainer.fit(model)
 ```
 
-You can also create snapshots with through the functional interface:
+You can also create snapshots through the functional interface:
 
 ```python 
 from checkpoint.code_snapshot import snapshot_files
