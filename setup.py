@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="pytorch-lightning-snippets",
-    version="0.0.4",
+    version="0.0.5",
     author="Adrian Wälchli",
     author_email="aedu.waelchli@gmail.com",
     scripts=[],
