@@ -148,6 +148,33 @@ This can lead to wrong gradient updates in the optimizer.
 Check the operations that reshape and permute tensor dimensions in your model.
 ```
 
+## Checkpoints
+
+### Snapshot Source Files
+
+This Callback creates a backup of all source files when you start a new training. 
+It is useful in case you need to reproduce results using an earlier state of the repository.
+Even if you are using git, it could happen that you forget to commit your changes, and then the timestamp of the checkpoint does not match the commit message.
+
+```python 
+from pytorch_lightning import Trainer
+from checkpoint.code_snapshot import CodeSnapshot
+
+# save all Python source files in cwd to lightning_logs/version_x/checkpoints/code.zip
+snapshot = CodeSnapshot()
+
+# save to a specific location
+snapshot = CodeSnapshot(output_file="path/to/code.zip")
+
+# choose which files to backup
+snapshot = CodeSnapshot(filetype=[".py", ".txt"])
+
+model = YourLightningModule()
+trainer = Trainer(callbacks=[snapshot])
+trainer.fit(model)
+```
+
+
 ## Acknowledgement
 
 Thanks to [Tyler Yep](https://github.com/TylerYep) for bringing the batch mixing trick to my attention in this [post](https://github.com/PyTorchLightning/pytorch-lightning/issues/1237).
