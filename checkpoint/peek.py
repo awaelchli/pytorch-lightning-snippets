@@ -1,7 +1,7 @@
+import code
 from argparse import ArgumentParser, Namespace
-from collections.abc import Sequence, Mapping
+from collections.abc import Mapping, Sequence
 from pathlib import Path
-from pprint import pprint
 
 import torch
 
@@ -17,23 +17,27 @@ PRIMITIVE_TYPES = (int, float, bool, str)
 
 
 def pretty_print(contents: dict):
+    """ Prints a nice summary of the top-level contens in a checkpoint dictionary. """
     col_size = max(len(str(k)) for k in contents)
     for k, v in sorted(contents.items()):
         key_length = len(str(k))
         line = " " * (col_size - key_length)
-        line += f"{k}: {COLORS.CYAN}{type(v).__name__}{COLORS.END}"
+        line += f"{k}: {COLORS.BLUE}{type(v).__name__}{COLORS.END}"
         if isinstance(v, PRIMITIVE_TYPES):
             line += f" = "
-            line += f"{COLORS.BLUE}{repr(v)}{COLORS.END}"
-        if isinstance(v, torch.Tensor):
+            line += f"{COLORS.CYAN}{repr(v)}{COLORS.END}"
+        elif isinstance(v, Sequence):
             line += ", "
-            line += f"{COLORS.BLUE}shape={list(v.shape)}{COLORS.END}"
+            line += f"{COLORS.CYAN}len={len(v)}{COLORS.END}"
+        elif isinstance(v, torch.Tensor):
             line += ", "
-            line += f"{COLORS.BLUE}dtype={v.dtype}{COLORS.END}"
+            line += f"{COLORS.CYAN}shape={list(v.shape)}{COLORS.END}"
+            line += ", "
+            line += f"{COLORS.CYAN}dtype={v.dtype}{COLORS.END}"
         print(line)
 
 
-def get_attribute(obj: object, name: str):
+def get_attribute(obj: object, name: str) -> object:
     if isinstance(obj, Mapping):
         return obj[name]
     if isinstance(obj, Namespace):
