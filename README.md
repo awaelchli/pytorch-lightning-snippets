@@ -182,6 +182,57 @@ from checkpoint.code_snapshot import snapshot_files
 snapshot_files(root="path/to/my/source", output_file="path/to/code.zip", filetype=[".py", ".ipynb"])
 ```
 
+### Inspect Checkpoint Files
+
+If you have installed this package using pip or setuptools, there should be a command `peek` available. 
+Run `peek --help` for more information about the command.
+
+#### Show top-level contents:
+
+```bash 
+peek path/to/checkpoint.ckpt
+```
+Output:
+```bash 
+ checkpoint_callback_best_model_path: str = '/home/adrian/test/lightning_logs/version_1/checkpoints/epoch=12.ckpt'
+checkpoint_callback_best_model_score: Tensor, shape=[], dtype=torch.float32
+                               epoch: int = 12
+                         global_step: int = 295240
+                        hparams_name: str = 'args'
+                    hyper_parameters: AttributeDict
+                       lr_schedulers: list, len=1
+                    optimizer_states: list, len=1
+           pytorch-lightning_version: str = '1.0.7'
+                          state_dict: OrderedDict
+```
+#### Query specific attributes
+
+```bash 
+peek path/to/checkpoint.ckpt global_step hyper_parameters/batch_size
+```
+Output:
+```bash 
+                global_step: int = 295240
+hyper_parameters/batch_size: int = 10
+```
+
+#### Interactive Mode
+
+You can inspect and modify the contents in interactive mode: 
+
+```bash 
+peek -i path/to/checkpoint.ckpt
+```
+Output:
+```bash 
+
+Entering interactive shell. You can access the checkpoint contents through the local variable 'checkpoint'.
+>>> checkpoint["global_step"]
+295240
+>>> 
+
+```
+
 
 ## Acknowledgement
 
