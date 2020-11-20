@@ -14,7 +14,13 @@ class BatchGradientVerification(VerificationBase):
     on the wrong tensor dimensions.
     """
 
-    def check(self, input_array=None, input_mapping: Callable = None, output_mapping: Callable = None, sample_idx=0) -> bool:
+    def check(
+        self,
+        input_array=None,
+        input_mapping: Callable = None,
+        output_mapping: Callable = None,
+        sample_idx=0,
+    ) -> bool:
         """
         Runs the test for data mixing across the batch.
 
@@ -62,10 +68,12 @@ class BatchGradientVerification(VerificationBase):
         zero_grad_inds.pop(sample_idx)
 
         has_grad_outside_sample = [
-            input_batch.grad[zero_grad_inds].abs().sum().item() for input_batch in input_batches
+            input_batch.grad[zero_grad_inds].abs().sum().item()
+            for input_batch in input_batches
         ]
         has_grad_inside_sample = [
-            input_batch.grad[sample_idx].abs().sum().item() for input_batch in input_batches
+            input_batch.grad[sample_idx].abs().sum().item()
+            for input_batch in input_batches
         ]
         return not any(has_grad_outside_sample) and all(has_grad_inside_sample)
 
@@ -76,7 +84,13 @@ class BatchGradientVerificationCallback(VerificationCallbackBase):
     Verification is performed right before training begins.
     """
 
-    def __init__(self, input_mapping: Callable = None, output_mapping: Callable = None, sample_idx=0, **kwargs):
+    def __init__(
+        self,
+        input_mapping: Callable = None,
+        output_mapping: Callable = None,
+        sample_idx=0,
+        **kwargs
+    ):
         """
         Arguments:
             input_mapping: An optional input mapping that returns all batched tensors in a input collection.
