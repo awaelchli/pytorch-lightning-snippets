@@ -30,10 +30,14 @@ def pretty_print(contents: dict):
             line += ", "
             line += f"{COLORS.CYAN}len={len(v)}{COLORS.END}"
         elif isinstance(v, torch.Tensor):
-            line += ", "
-            line += f"{COLORS.CYAN}shape={list(v.shape)}{COLORS.END}"
-            line += ", "
-            line += f"{COLORS.CYAN}dtype={v.dtype}{COLORS.END}"
+            if v.ndimension() in (0, 1):
+                line += f" = "
+                line += f"{COLORS.CYAN}{v.item()}{COLORS.END}"
+            else:
+                line += ", "
+                line += f"{COLORS.CYAN}shape={list(v.shape)}{COLORS.END}"
+                line += ", "
+                line += f"{COLORS.CYAN}dtype={v.dtype}{COLORS.END}"
         print(line)
 
 
