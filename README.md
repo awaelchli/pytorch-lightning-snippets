@@ -232,6 +232,8 @@ Entering interactive shell. You can access the checkpoint contents through the l
 
 ```
 
+![](.images/peek.gif)
+
 
 ## Acknowledgement
 
